@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"time"
+	_ "time/tzdata" // embed timezone information in the program
 
 	"github.com/google/go-github/v67/github"
 	"golang.org/x/oauth2/google"
@@ -98,7 +99,8 @@ func updateSpreadsheet(value int) error {
 			fmt.Printf("%s, %s\n", row[0], row[1])
 		}
 	}
-	valuesToWrite := [][]interface{}{{time.Now().Format(time.DateTime), value}}
+	loc, _ := time.LoadLocation("America/Chicago")
+	valuesToWrite := [][]interface{}{{time.Now().In(loc).Format("2006-01-02 15:04:05 MST"), value}}
 
 	// Insert new row
 	_, err = srv.Spreadsheets.BatchUpdate(spreadsheetId, &sheets.BatchUpdateSpreadsheetRequest{
