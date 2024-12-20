@@ -1,0 +1,24 @@
+name: Update spreadsheet with latest metrics
+
+on:
+  workflow_dispatch: # Manual
+  schedule:
+    - cron: '0 */12 * * *' # At 00:00 and 12:00 UTC
+
+env:
+  GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+
+jobs:
+  update-spreadsheet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      - name: Setup Go
+        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
+        with:
+          go-version-file: 'go.mod'
+      - name: Run
+        run: go run main.go

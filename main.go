@@ -13,8 +13,6 @@ import (
 	"google.golang.org/api/sheets/v4"
 )
 
-const spreadsheetId = "19yEMv5zQmVD1cmpkrFFtXCsPlR7yPfNxzPKtQE6gFGo"
-
 func main() {
 	ctx := context.Background()
 	allIssues, err := getGitHubIssues(ctx)
@@ -56,9 +54,22 @@ func getGitHubIssues(ctx context.Context) ([]*github.Issue, error) {
 func updateSpreadsheet(value int) error {
 	ctx := context.Background()
 
-	serviceAccountKey, err := os.ReadFile("key.json")
-	if err != nil {
+	// Get the spreadsheet ID from the environment variable
+	spreadsheetId := os.Getenv("SPREADSHEET_ID")
+	if spreadsheetId == "" {
+		return fmt.Errorf("spreadsheet ID not found")
+	}
+
+	serviceAccountKey, err := os.ReadFile("credentials.json")
+	switch {
+	case os.IsNotExist(err):
+		// credentials.json file not found, try to read from environment variable
+		serviceAccountKey = []byte(os.Getenv("GOOGLE_SERVICE_ACCOUNT_KEY"))
+	case err != nil:
 		return fmt.Errorf("unable to read client secret file: %w", err)
+	}
+	if len(serviceAccountKey) == 0 {
+		return fmt.Errorf("service account key not found")
 	}
 
 	cfg, err := google.JWTConfigFromJSON(serviceAccountKey, sheets.SpreadsheetsScope)
